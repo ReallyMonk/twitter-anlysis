@@ -1,3 +1,5 @@
-import nltk
+from textblob import TextBlob
 
-nltk.download()
+filepath = "./MFA_Chian.txt"
+
+# fetch tweets from file
