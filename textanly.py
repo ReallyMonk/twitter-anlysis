@@ -3,7 +3,10 @@ import json
 import pandas as pd
 import numpy as np
 import textblob
+import csv
+import gettweets
 
+orifilepath = "./MFA_China.txt"
 filepath = "./MFA_ChinaRes.json"
 ofilepath = "./MFA_China_Label.json"
 
@@ -48,6 +51,7 @@ def relabel_tweets():
                 new_f.write('\n')
 
     print('relabel done')
+    return
 
 
 # fetch tweets from file
@@ -78,7 +82,42 @@ def content_analysis():
     return tt_polarity, tt_subjectivity, tt_category
 
 
-#content_analysis()
-#relabel_tweets()
-#a, b, c = content_analysis()
-#print(a, b, c)
+# seperate tweets into clusters according to hastags they have
+def seperate_hastag(txt_f):
+    # get files and collected hashtags
+    tag_list = {}
+    with open(txt_f, 'r', encoding='utf-8', errors='ignore') as f:
+        #f = json.load(f)
+        for jsonstr in f.readlines():
+            #print(jsonstr)
+            jsonstr = json.loads(jsonstr)
+            # fetch new tags from json item
+            #print(jsonstr)
+            for tag in jsonstr['hashtags']:
+                if tag not in tag_list:
+                    tag_list[tag] = []
+                # add tweet into tag filter
+                tag_list[tag].append(jsonstr['date'] + '  ' + jsonstr['tweet'])
+        f.close()
+        # write into files
+    #print('here')
+    tag_order = {}
+    for tag in tag_list:
+        tag_count = len(tag_list[tag])
+        tag_order[tag] = len(tag_list[tag])
+        tmp_out_file_path = "./MFA_China/{}-{}.txt".format(tag, tag_count)
+        with open(tmp_out_file_path, 'a', encoding='utf-8', errors='ignore') as f:
+            #for content in tag_list[tag]:
+            #f.write(content + '\n')
+            f.close()
+    tag_order = sorted(tag_order.items(), key=lambda kv: (-kv[1], kv[0]))
+    with open('./tag_order.csv', 'a', encoding='utf-8') as f:
+        csv_writer = csv.writer(f)
+        csv_writer.writerow(['tag', 'count'])
+        #for item in tag_order:
+        csv_writer.writerows(tag_order)
+
+    return
+
+
+#print(gettweets.get_mention_users())
