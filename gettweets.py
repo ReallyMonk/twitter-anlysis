@@ -19,13 +19,13 @@ def fetch_tweet(user):
     c.Store_json = True
     #c.Store_csv =
     #c.Output = "./MFA_China.txt"
-    c.Since = '2020-9-28'
-    c.Until = "2021-10-15"
+    #c.Since = '2019-9-28'
+    #c.Until = "2021-10-15"
     #c.Location = True
-    Limit = 200
-    c.Profile_full = True
+    #c.Limit = 200
+    #c.Profile_full = True
     #c.Media = True
-    c.Retweets = True
+    #c.Retweets = True
     #c.Filter_retweets = True
 
     c.Custom["tweet"] = ["id", "date", "username", "name", "tweet", "urls", "replies_count", "retweets_count", "mentions", "likes_count", "hashtags", "cashtags", "retweet", "quote_url", "retweet_date", "user_rt_id"]
@@ -41,7 +41,7 @@ def fetch_tweet(user):
     #c.Search = kw
     #print(c.Retweets)
     print(c)
-    c.Output = './lv1Related/{}.txt'.format(user)
+    c.Output = './{}.json'.format(user)
     twint.run.Search(c)
 
     print("done with ", c.Username)
@@ -80,9 +80,17 @@ def find_missing():
     return missing
 
 
-userList = get_mention_users()
+'''userList = get_mention_users()
 #print(len(userList))
 #print(userList)
 print(len(userList))
 for user in userList:
     fetch_tweet(user)
+'''
+
+# fetch_tweet('zlj517')
+'''c = twint.Config()
+c.Username = 'RNG'
+twint.run.Lookup(c) '''
+
+#fetch_tweet('zlj517')

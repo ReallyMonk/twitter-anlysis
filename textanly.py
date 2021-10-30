@@ -5,6 +5,7 @@ import numpy as np
 import textblob
 import csv
 import gettweets
+import os
 
 orifilepath = "./MFA_China.txt"
 filepath = "./MFA_ChinaRes.json"
@@ -121,3 +122,37 @@ def seperate_hastag(txt_f):
 
 
 #print(gettweets.get_mention_users())
+filelist_path = './lv1Related_full/'
+
+
+def build_mention_matrix(filelist_path):
+    filelist = os.listdir(filelist_path)
+    mention_list = []
+
+    # pick up mention list
+    for filename in filelist:
+        #file_j = json.dumps(filename)
+        mention_list.append(filename.split('.')[0])
+    print(mention_list)
+    print('got {} totally'.format(len(mention_list)))
+
+    # initial matrix
+    data = np.zeros((len(mention_list), len(mention_list)))
+    mention_mtx = pd.DataFrame(data, columns=mention_list, index=mention_list)
+    print(mention_mtx)
+
+    # buil dataframe matrix horizontal axis been source, veritcal axis been target
+    for filename in filelist:
+        with open(filelist_path + filename, 'r', encoding='utf-8') as f:
+            # print(f.readlines())
+            source = filename.split('.')[0]
+            for twt in f.readlines():
+                twt = json.loads(twt)
+                for men_user in twt['mentions']:
+                    target = men_user['screen_name']
+                    if target in mention_list:
+                        mention_mtx[source][target] += 1
+
+    mention_mtx.to_csv('./mentions.csv')
+    print(mention_mtx)
+    return

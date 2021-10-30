@@ -1,9 +1,12 @@
 import matplotlib.pyplot as plt
+import matplotlib
 import seaborn as sns
 from scipy import stats, integrate
 import random
 import pandas as pd
+import numpy as np
 from itertools import cycle
+import networkx as nx
 
 import textanly
 '''testlist_x = [random.uniform(-1, 1) for i in range(1000)]
@@ -48,9 +51,7 @@ def visualize(polarity, subjectivity, category, cat_num):
     # seperate dataframe and sort according to amount
     # get top k cat and num
     top_k_num = {}
-    top_k_cat_num = ps_df.groupby('category',
-                                  as_index=False).count().sort_values(by='polarity',
-                                                                      ascending=False).head(cat_num)
+    top_k_cat_num = ps_df.groupby('category', as_index=False).count().sort_values(by='polarity', ascending=False).head(cat_num)
     for cnt_num in top_k_cat_num.iterrows():
         cnt_num = cnt_num[1]
         #print(cnt_num['category'], cnt_num['polarity'])
@@ -59,8 +60,7 @@ def visualize(polarity, subjectivity, category, cat_num):
     return
 
     # seperate dataframe and sort according to amount
-    top_k_cat = ps_df.groupby('category', as_index=False).count().sort_values(
-        by='polarity', ascending=False)['category'].head(cat_num)
+    top_k_cat = ps_df.groupby('category', as_index=False).count().sort_values(by='polarity', ascending=False)['category'].head(cat_num)
     top_k_list = list(top_k_cat)
     print(top_k_cat)
     print(top_k_list)
@@ -102,5 +102,38 @@ def visualize(polarity, subjectivity, category, cat_num):
     #plt.show()
 
 
-testlist_x, testlist_y, testlist_z = textanly.content_analysis()
-visualize(testlist_x, testlist_y, testlist_z, 10)
+data_path = './mentions.csv'
+
+
+def plot_network(data_path):
+    # read data and data processing
+    data = pd.read_csv(data_path, index_col=[0])
+    nodes = data.columns.values.tolist()
+
+    cluster_num = 112
+
+    print(data.sum(axis=1).sort_values(ascending=False)[:20])
+
+    #nodes = nodes[0:50]
+    # print(nodes)
+    cmap = plt.get_cmap('Spectral', cluster_num)
+    # cmap_clr = cmap._segmentdata
+    for i in range(cmap.N):
+        print(matplotlib.colors.rgb2hex(cmap(i)))
+    # build node list
+    #graph = nx.random_geometric_graph(112, 0.125)
+    graph = nx.Graph()
+    graph.add_nodes_from(nodes)
+
+    # add edge
+    for source in nodes:
+        for target in nodes:
+            if data[source][target] > 0 and source != target:
+                graph.add_edge(source, target, weight=data[source][target])
+
+    nx.spring_layout(graph, scale=2)
+    nx.draw(graph, with_labels=False, font_weight='bold', node_size=100, alpha=0.7)
+    plt.show()
+
+
+plot_network(data_path)
