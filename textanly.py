@@ -8,7 +8,7 @@ import gettweets
 import os
 
 orifilepath = "./MFA_China.txt"
-filepath = "./MFA_ChinaRes.json"
+infilepath = "./MFA_ChinaRes.json"
 ofilepath = "./MFA_China_Label.json"
 
 
@@ -156,3 +156,100 @@ def build_mention_matrix(filelist_path):
     mention_mtx.to_csv('./mentions.csv')
     print(mention_mtx)
     return
+
+
+jsonfile_path = './MFA_China_response_txt.json'
+
+# a tweet object should include:
+# username, time, content, tweet_id, media, reply_count, retweet_count, favorite_count, quote_count, mentions, rt_mentions, hashtags
+
+
+def extract_tweet(filepath):
+    with open(filepath, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+        user_info = None
+        for item in lines:
+            # get tweets according to timeline
+            item = json.loads(item)
+            # find the user information
+            if not user_info:
+                screen_name = filepath.split('./')[1].split('_response')[0]
+                # find user in globalObjects.users
+                for user in item['globalObjects']['users'].keys():
+                    if item['globalObjects']['users'][user]['screen_name'] == screen_name:
+                        tar_user = item['globalObjects']['users'][user]
+                        continue
+                #print(tar_user)
+                user_info = {
+                    'screen_name': screen_name,
+                    'username': tar_user['name'],
+                    'user_id': tar_user['id_str'],
+                }
+            # start extract tweet
+            timeline = item['timeline']['instructions'][0]['addEntries']['entries']
+            globaltwts = item['globalObjects']['tweets']
+            for twt in timeline:
+                if twt['entryId'].startswith('tweet-'):
+                    twt_id = twt['sortIndex']
+                    tweet_tmp = globaltwts[twt_id]
+                    # separate tweet or retweet
+                    if 'retweeted_status_id_str' in tweet_tmp:
+                        is_retweet = True
+                        rt_obj = globaltwts[tweet_tmp['retweeted_status_id_str']]
+                        # modify content
+                        # but notice that some retweet user may not exist, so we need to check if the user still exist
+                        if 'user_mentions' in tweet_tmp['entities']:
+                            rt_user = tweet_tmp['full_text'].split('@')[1].split(':')[0]
+                            content = 'RT @{}: '.format(rt_user) + rt_obj['full_text']
+                        mentions = [rt_user]
+                        rt_mentions = []
+                        if 'user_mentions' in rt_obj['entities']:
+                            rt_mentions = [mention['screen_name'] for mention in rt_obj['entities']['user_mentions']]
+                        obj = rt_obj
+                    else:
+                        is_retweet = False
+                        content = tweet_tmp['full_text']
+                        mentions = []
+                        if 'user_mentions' in tweet_tmp['entities']:
+                            mentions = [mention['screen_name'] for mention in tweet_tmp['entities']['user_mentions']]
+                        rt_mentions = []
+                        obj = tweet_tmp
+
+                    retweet_cnt = obj['retweet_count']
+                    favorite_cnt = obj['favorite_count']
+                    reply_cnt = obj['reply_count']
+                    quote_cnt = obj['quote_count']
+                    # check media
+                    media = []
+                    if 'media' in obj['entities']:
+                        media = [media_item['type'] for media_item in obj['entities']['media']]
+                        media.extend([media_item['type'] for media_item in obj['extended_entities']['media']])
+                        media = list(set(media))
+                    # check hashtags
+                    hashtags = []
+                    if 'hashtags' in obj['entities']:
+                        hashtags = [hashitem['text'] for hashitem in obj['entities']['hashtags']]
+
+                    tweet = {
+                        'time': tweet_tmp['created_at'],
+                        'tweet_id': tweet_tmp['id_str'],
+                        'is_retweet': is_retweet,
+                        'content': content,
+                        'media': media,
+                        'hashtags': hashtags,
+                        'mentions': mentions,
+                        'rt_mentions': rt_mentions,
+                        'retweet_count': retweet_cnt,
+                        'favorite_count': favorite_cnt,
+                        'reply_count': reply_cnt,
+                        'quote_count': quote_cnt,
+                    }
+                    tweet.update(user_info)
+                    # write tweets to file
+                    with open('./MFA_China_new.json', 'a', encoding='utf-8') as out_f:
+                        out_f.write(json.dumps(tweet) + '\n')
+
+
+extract_tweet(jsonfile_path)
+
+#build_mention_matrix(filelist_path)

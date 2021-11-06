@@ -1,6 +1,7 @@
-import twint
+# import twint
 import json
 import os
+import twint as twint
 '''
 ERROR: User been defined nonetype
 solved by executing following
@@ -19,8 +20,8 @@ def fetch_tweet(user):
     c.Store_json = True
     #c.Store_csv =
     #c.Output = "./MFA_China.txt"
-    #c.Since = '2019-9-28'
-    #c.Until = "2021-10-15"
+    c.Since = '2019-9-28'
+    c.Until = "2021-10-15"
     #c.Location = True
     #c.Limit = 200
     #c.Profile_full = True
@@ -40,9 +41,9 @@ def fetch_tweet(user):
     print('trying to get ', c.Username)
     #c.Search = kw
     #print(c.Retweets)
-    print(c)
+    #print(c)
     c.Output = './{}.json'.format(user)
-    twint.run.Search(c)
+    twint.run.Profile(c)
 
     print("done with ", c.Username)
 
@@ -80,17 +81,4 @@ def find_missing():
     return missing
 
 
-'''userList = get_mention_users()
-#print(len(userList))
-#print(userList)
-print(len(userList))
-for user in userList:
-    fetch_tweet(user)
-'''
-
-# fetch_tweet('zlj517')
-'''c = twint.Config()
-c.Username = 'RNG'
-twint.run.Lookup(c) '''
-
-#fetch_tweet('zlj517')
+#fetch_tweet('MFA_China')

@@ -26,11 +26,7 @@ def visualize(polarity, subjectivity, category, cat_num):
     plotpath = './plot/'
 
     # build dataframe structure
-    ps_df = pd.DataFrame({
-        'polarity': polarity,
-        'subjectivity': subjectivity,
-        'category': category
-    })
+    ps_df = pd.DataFrame({'polarity': polarity, 'subjectivity': subjectivity, 'category': category})
 
     if False:
         # polarity distribution plot
@@ -55,10 +51,7 @@ def visualize(polarity, subjectivity, category, cat_num):
     # seperate dataframe and sort according to amount
     # get top k cat and num
     top_k_num = {}
-    top_k_cat_num = ps_df.groupby('category',
-                                  as_index=False).count().sort_values(
-                                      by='polarity',
-                                      ascending=False).head(cat_num)
+    top_k_cat_num = ps_df.groupby('category', as_index=False).count().sort_values(by='polarity', ascending=False).head(cat_num)
     for cnt_num in top_k_cat_num.iterrows():
         cnt_num = cnt_num[1]
         #print(cnt_num['category'], cnt_num['polarity'])
@@ -67,8 +60,7 @@ def visualize(polarity, subjectivity, category, cat_num):
     return
 
     # seperate dataframe and sort according to amount
-    top_k_cat = ps_df.groupby('category', as_index=False).count().sort_values(
-        by='polarity', ascending=False)['category'].head(cat_num)
+    top_k_cat = ps_df.groupby('category', as_index=False).count().sort_values(by='polarity', ascending=False)['category'].head(cat_num)
     top_k_list = list(top_k_cat)
     print(top_k_cat)
     print(top_k_list)
@@ -78,8 +70,7 @@ def visualize(polarity, subjectivity, category, cat_num):
     labels = []
     graphs = []
 
-    spt_df = ps_df.loc[ps_df['category'].isin(
-        top_k_list)]  #.groupby('category')
+    spt_df = ps_df.loc[ps_df['category'].isin(top_k_list)]  #.groupby('category')
     # reorder spt_df with topkcat list
     spt_df['category'] = spt_df['category'].astype('category')
     spt_df['category'].cat.reorder_categories(top_k_list, inplace=True)
@@ -97,9 +88,7 @@ def visualize(polarity, subjectivity, category, cat_num):
         sing_cate_data = sing_cate[1]
         print(type(sing_cate))
 
-        g = plt.scatter(sing_cate_data['polarity'],
-                        sing_cate_data['subjectivity'],
-                        c=cmap(i))
+        g = plt.scatter(sing_cate_data['polarity'], sing_cate_data['subjectivity'], c=cmap(i))
         labels.append(sing_cate[0])
         graphs.append(g)
     '''plt.scatter(ps_df['polarity'], ps_df['subjectivity'], marker='o')
@@ -121,8 +110,9 @@ def plot_network(data_path):
     cluster_num = 112
     data = pd.read_csv(data_path, index_col=[0])
 
+    # spectral clustering
     # build degree_matrix
-    degrees = data.sum(axis=0).sort_values(ascending=False)
+    degrees = data.sum(axis=0)
     print(degrees.items())
     nodes = [index for index, _ in degrees.items()]
     all_zeros = np.zeros((len(degrees), len(degrees)))
@@ -164,19 +154,11 @@ def plot_network(data_path):
     for source in nodes:
         for target in nodes:
             if data[source][target] > 0 and source != target:
-                graph.add_edge(source,
-                               target,
-                               weight=data[source][target],
-                               colors='#666666')
+                graph.add_edge(source, target, weight=data[source][target], colors='#666666')
 
     options = {"edge_color": "#666666"}
     nx.shell_layout(graph, scale=2)
-    nx.draw(graph,
-            with_labels=True,
-            font_size=10,
-            node_size=50,
-            alpha=0.7,
-            **options)
+    nx.draw(graph, with_labels=True, font_size=10, node_size=50, alpha=0.7, **options)
     plt.show()
 
 
